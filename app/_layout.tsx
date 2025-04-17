@@ -53,10 +53,13 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
-
+  const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <ClerkProvider tokenCache={tokenCache}>
+      <ClerkProvider
+        tokenCache={tokenCache}
+        publishableKey={CLERK_PUBLISHABLE_KEY}
+      >
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="(home)" options={{ headerShown: false }} />
