@@ -9,58 +9,93 @@ export default function Page() {
 
   const [emailAddress, setEmailAddress] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [error, setError] = React.useState("");
 
-  // Handle the submission of the sign-in form
   const onSignInPress = async () => {
     if (!isLoaded) return;
 
-    // Start the sign-in process using the email and password provided
     try {
+      setError("");
       const signInAttempt = await signIn.create({
         identifier: emailAddress,
         password,
       });
 
-      // If sign-in process is complete, set the created session as active
-      // and redirect the user
       if (signInAttempt.status === "complete") {
         await setActive({ session: signInAttempt.createdSessionId });
         router.replace("/");
       } else {
-        // If the status isn't complete, check why. User might need to
-        // complete further steps.
         console.error(JSON.stringify(signInAttempt, null, 2));
+        setError("Sign in incomplete. Please try again.");
       }
-    } catch (err) {
-      // See https://clerk.com/docs/custom-flows/error-handling
-      // for more info on error handling
+    } catch (err: any) {
       console.error(JSON.stringify(err, null, 2));
+      setError(
+        err.errors?.[0]?.message || "Failed to sign in. Please try again."
+      );
     }
   };
 
   return (
-    <View>
-      <Text>Sign in</Text>
-      <TextInput
-        autoCapitalize="none"
-        value={emailAddress}
-        placeholder="Enter email"
-        onChangeText={(emailAddress) => setEmailAddress(emailAddress)}
-      />
-      <TextInput
-        value={password}
-        placeholder="Enter password"
-        secureTextEntry={true}
-        onChangeText={(password) => setPassword(password)}
-      />
-      <TouchableOpacity onPress={onSignInPress}>
-        <Text>Continue</Text>
-      </TouchableOpacity>
-      <View style={{ display: "flex", flexDirection: "row", gap: 3 }}>
-        <Text>Don't have an account?</Text>
-        <Link href="/sign-up">
-          <Text>Sign up</Text>
-        </Link>
+    <View className="flex-1 bg-white dark:bg-gray-900 px-4 py-8">
+      <View className="max-w-sm w-full mx-auto">
+        <View className="mb-8">
+          <Text className="text-3xl font-bold text-gray-900 dark:text-white text-center">
+            Welcome back
+          </Text>
+          <Text className="text-gray-600 dark:text-gray-400 text-center mt-2">
+            Please sign in to continue
+          </Text>
+        </View>
+
+        {error ? (
+          <Text className="text-red-500 text-sm mb-4 text-center">{error}</Text>
+        ) : null}
+
+        <View className="space-y-4">
+          <View>
+            <TextInput
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              autoCapitalize="none"
+              value={emailAddress}
+              placeholder="Email address"
+              placeholderTextColor="#9CA3AF"
+              onChangeText={setEmailAddress}
+              keyboardType="email-address"
+            />
+          </View>
+
+          <View>
+            <TextInput
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              value={password}
+              placeholder="Password"
+              placeholderTextColor="#9CA3AF"
+              secureTextEntry={true}
+              onChangeText={setPassword}
+            />
+          </View>
+
+          <TouchableOpacity
+            className="w-full bg-blue-600 py-3 rounded-lg"
+            onPress={onSignInPress}
+          >
+            <Text className="text-white text-center font-semibold text-base">
+              Sign In
+            </Text>
+          </TouchableOpacity>
+
+          <View className="flex-row justify-center items-center space-x-1 mt-4">
+            <Text className="text-gray-600 dark:text-gray-400">
+              Don't have an account?
+            </Text>
+            <Link href="/sign-up" asChild>
+              <TouchableOpacity>
+                <Text className="text-blue-600 font-semibold">Sign up</Text>
+              </TouchableOpacity>
+            </Link>
+          </View>
+        </View>
       </View>
     </View>
   );

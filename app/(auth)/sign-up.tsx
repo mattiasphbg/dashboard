@@ -11,100 +11,158 @@ export default function SignUpScreen() {
   const [password, setPassword] = React.useState("");
   const [pendingVerification, setPendingVerification] = React.useState(false);
   const [code, setCode] = React.useState("");
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
 
   // Handle submission of sign-up form
   const onSignUpPress = async () => {
     if (!isLoaded) return;
+    setIsLoading(true);
+    setError("");
 
-    // Start sign-up process using email and password provided
     try {
       await signUp.create({
         emailAddress,
         password,
       });
 
-      // Send user an email with verification code
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-
-      // Set 'pendingVerification' to true to display second form
-      // and capture OTP code
       setPendingVerification(true);
-    } catch (err) {
-      // See https://clerk.com/docs/custom-flows/error-handling
-      // for more info on error handling
+    } catch (err: any) {
+      setError(err.message || "An error occurred during sign up");
       console.error(JSON.stringify(err, null, 2));
+    } finally {
+      setIsLoading(false);
     }
   };
 
   // Handle submission of verification form
   const onVerifyPress = async () => {
     if (!isLoaded) return;
+    setIsLoading(true);
+    setError("");
 
     try {
-      // Use the code the user provided to attempt verification
       const signUpAttempt = await signUp.attemptEmailAddressVerification({
         code,
       });
 
-      // If verification was completed, set the session to active
-      // and redirect the user
       if (signUpAttempt.status === "complete") {
         await setActive({ session: signUpAttempt.createdSessionId });
         router.replace("/");
       } else {
-        // If the status is not complete, check why. User may need to
-        // complete further steps.
+        setError("Verification incomplete. Please try again.");
         console.error(JSON.stringify(signUpAttempt, null, 2));
       }
-    } catch (err) {
-      // See https://clerk.com/docs/custom-flows/error-handling
-      // for more info on error handling
+    } catch (err: any) {
+      setError(err.message || "An error occurred during verification");
       console.error(JSON.stringify(err, null, 2));
+    } finally {
+      setIsLoading(false);
     }
   };
 
   if (pendingVerification) {
     return (
-      <>
-        <Text>Verify your email</Text>
-        <TextInput
-          value={code}
-          placeholder="Enter your verification code"
-          onChangeText={(code) => setCode(code)}
-        />
-        <TouchableOpacity onPress={onVerifyPress}>
-          <Text>Verify</Text>
-        </TouchableOpacity>
-      </>
+      <View className="flex-1 justify-center px-6 py-12 bg-white">
+        <View className="space-y-6">
+          <View className="space-y-2">
+            <Text className="text-2xl font-bold text-center text-gray-900">
+              Verify your email
+            </Text>
+            <Text className="text-sm text-center text-gray-500">
+              We've sent a verification code to your email
+            </Text>
+          </View>
+
+          <View className="space-y-4">
+            <TextInput
+              value={code}
+              placeholder="Enter verification code"
+              onChangeText={setCode}
+              className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:border-blue-500"
+              keyboardType="number-pad"
+              autoComplete="off"
+              autoCapitalize="none"
+            />
+
+            {error ? (
+              <Text className="text-sm text-red-500 text-center">{error}</Text>
+            ) : null}
+
+            <TouchableOpacity
+              onPress={onVerifyPress}
+              disabled={isLoading || !code}
+              className={`w-full h-12 flex items-center justify-center rounded-lg bg-blue-600 ${
+                isLoading || !code ? "opacity-50" : ""
+              }`}
+            >
+              <Text className="text-white font-semibold">
+                {isLoading ? "Verifying..." : "Verify Email"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
     );
   }
 
   return (
-    <View>
-      <>
-        <Text>Sign up</Text>
-        <TextInput
-          autoCapitalize="none"
-          value={emailAddress}
-          placeholder="Enter email"
-          onChangeText={(email) => setEmailAddress(email)}
-        />
-        <TextInput
-          value={password}
-          placeholder="Enter password"
-          secureTextEntry={true}
-          onChangeText={(password) => setPassword(password)}
-        />
-        <TouchableOpacity onPress={onSignUpPress}>
-          <Text>Continue</Text>
-        </TouchableOpacity>
-        <View style={{ display: "flex", flexDirection: "row", gap: 3 }}>
-          <Text>Already have an account?</Text>
-          <Link href="/modal">
-            <Text>Sign in</Text>
-          </Link>
+    <View className="flex-1 justify-center px-6 py-12 bg-white">
+      <View className="space-y-6">
+        <View className="space-y-2">
+          <Text className="text-2xl font-bold text-center text-gray-900">
+            Create your account
+          </Text>
+          <Text className="text-sm text-center text-gray-500">
+            Sign up to get started
+          </Text>
         </View>
-      </>
+
+        <View className="space-y-4">
+          <TextInput
+            value={emailAddress}
+            placeholder="Email address"
+            onChangeText={setEmailAddress}
+            className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:border-blue-500"
+            keyboardType="email-address"
+            autoComplete="email"
+            autoCapitalize="none"
+          />
+
+          <TextInput
+            value={password}
+            placeholder="Password"
+            secureTextEntry
+            onChangeText={setPassword}
+            className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:border-blue-500"
+            autoComplete="password"
+          />
+
+          {error ? (
+            <Text className="text-sm text-red-500 text-center">{error}</Text>
+          ) : null}
+
+          <TouchableOpacity
+            onPress={onSignUpPress}
+            disabled={isLoading || !emailAddress || !password}
+            className={`w-full h-12 flex items-center justify-center rounded-lg bg-blue-600 ${
+              isLoading || !emailAddress || !password ? "opacity-50" : ""
+            }`}
+          >
+            <Text className="text-white font-semibold">
+              {isLoading ? "Creating account..." : "Sign Up"}
+            </Text>
+          </TouchableOpacity>
+
+          <View className="flex-row justify-center items-center space-x-1">
+            <Text className="text-gray-500">Already have an account?</Text>
+            <Link href="/sign-in" className="text-blue-600 font-semibold">
+              Sign in
+            </Link>
+          </View>
+        </View>
+      </View>
     </View>
   );
 }
