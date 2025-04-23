@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Image } from "react-native";
-import { useUser, useAuth } from "@clerk/clerk-expo";
+import { useUser, useAuth, useOrganization } from "@clerk/clerk-expo";
 
 const UserProfileScreen = () => {
   const { user } = useUser();
@@ -9,10 +9,12 @@ const UserProfileScreen = () => {
   if (!user)
     return <Text className="text-center text-gray-500">Loading...</Text>;
 
+  const { organization } = useOrganization();
+
   return (
     <View className="flex-1 p-6 bg-white">
       <Text className="text-2xl font-bold mb-6 text-gray-800">
-        User Profile
+        User Profile {organization?.name}
       </Text>
 
       <View className="bg-gray-50 rounded-xl p-4 shadow-sm mb-6">

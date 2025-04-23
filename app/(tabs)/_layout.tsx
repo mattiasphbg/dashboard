@@ -62,6 +62,7 @@ export default function TabLayout() {
           title: "Profile",
           tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
           headerTitle: "My Profile",
+          
         }}
       />
     </Tabs>
