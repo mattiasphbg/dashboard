@@ -9,12 +9,10 @@ const UserProfileScreen = () => {
   if (!user)
     return <Text className="text-center text-gray-500">Loading...</Text>;
 
-  const { organization } = useOrganization();
-
   return (
     <View className="flex-1 p-6 bg-white">
       <Text className="text-2xl font-bold mb-6 text-gray-800">
-        User Profile {organization?.name}
+        User Profile
       </Text>
 
       <View className="bg-gray-50 rounded-xl p-4 shadow-sm mb-6">
